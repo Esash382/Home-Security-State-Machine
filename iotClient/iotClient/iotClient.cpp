@@ -1,21 +1,9 @@
 // iotClient.cpp : Defines the entry point for the console application.
 //
 
-#include "cpprest/filestream.h"
-#include "cpprest/http_client.h"
-#include "cpprest/json.h"
-#include <iostream>
-#include <sstream>
-#include <conio.h>
-#include <string>
+#include "iotClient.h"
 
-using namespace ::pplx;
-
-using namespace web;
-using namespace web::http;
-using namespace web::http::client;
-
-void request(http_client & client, method m, json::value const & jvalue)
+void iotClient::request(http_client& client, method m, json::value const& jvalue)
 {
 	client.request(m, L"/iot", jvalue).then([](http_response res)
 	{
@@ -24,12 +12,14 @@ void request(http_client & client, method m, json::value const & jvalue)
 			return res.extract_json();
 		}
 		return pplx::task_from_result(json::value());
-	}).then([](pplx::task<json::value> task)
+	}).then([=](pplx::task<json::value> task)
 	{
 		try
 		{
 			std::wcout << L"Reply from Server:" << std::endl;
 			std::wcout << task.get().serialize() << std::endl << std::endl;
+
+			iotClient::callPostRequest(client, task.get());
 		}
 		catch (http_exception const & e)
 		{
@@ -38,17 +28,83 @@ void request(http_client & client, method m, json::value const & jvalue)
 	}).wait();
 }
 
-void callMakeRequest(web::json::value getValue)
+void iotClient::callPutRequest(http_client client, web::json::value& value)
 {
-	http_client client(U("http://localhost:8080"));
-	std::wcout << L"PUT request from client" << std::endl;
-	request(client, methods::PUT, getValue);
+	auto getvalue = json::value::array();
+	int counter = 0;
 
-	std::wcout << L"POST request from client" << std::endl;
-	request(client, methods::POST, getValue);
+	for (auto const & e : value.as_array())
+	{
+		auto value = json::value::array();
+		value[0] = e.at(utility::string_t(L"STATE"));
+		value[1] = e.at(utility::string_t(L"TRANSITION"));
+		value[2] = e.at(utility::string_t(L"ACTION"));
+		value[3] = e.at(utility::string_t(L"CODE"));
+
+		getvalue[counter++] = value;
+	}
+
+	std::wcout << L"Request to Server:" << std::endl;
+	std::wcout << getvalue.serialize() << std::endl << std::endl;
+	iotClient::request(client, methods::PUT, getvalue);
 }
 
-pplx::task<void> HTTPMethod()
+void iotClient::callArmRequest(http_client client)
+{
+	auto value = json::value::array();
+
+	// Request server to arm the device
+	std::wcout << L"Request to Server: Switch on device" << std::endl;
+	value[0] = json::value::string(L"OFF");
+	value[1] = json::value::string(L"");
+	iotClient::request(client, methods::POST, value);
+}
+
+void iotClient::callDisarmRequest(http_client client)
+{
+	auto value = json::value::array();
+
+	// Request server to disarm the device
+	std::wcout << L"Request to Server: Switch off device" << std::endl;
+	value[0] = json::value::string(L"ON");
+	value[1] = json::value::string(L"");
+	iotClient::request(client, methods::POST, value);
+}
+
+void iotClient::callPostRequest(http_client client, web::json::value& _value)
+{
+	auto value = json::value::array();
+
+	if (_value.serialize().find(L"USER_CODE") != std::wstring::npos)
+	{
+		// Request from server to enter code
+		std::wcout << L"Request to Server: Validate code" << std::endl;
+		value[0] = json::value::string(L"USER_CODE");
+		value[1] = json::value::string(L"12345");
+		iotClient::request(client, methods::POST, value);
+	}
+}
+
+void iotClient::callMakeRequest(web::json::value& value)
+{
+	http_client client(U("http://localhost:8080"));
+
+	std::wcout << L"PUT request from client" << std::endl;
+	iotClient::callPutRequest(client, value);
+}
+
+void iotClient::callActionRequest()
+{
+	http_client client(U("http://localhost:8080"));
+
+	std::wcout << L"Arm request from client" << std::endl;
+	iotClient::callArmRequest(client);
+
+	std::wcout << L"Disarm request from client" << std::endl;
+	iotClient::callDisarmRequest(client);
+}
+
+pplx::task<void> iotClient::HTTPMakeMethod()
 {
 	http_client client(U("http://localhost/examples/"));
 
@@ -73,42 +129,11 @@ pplx::task<void> HTTPMethod()
 	{
 		try
 		{
-			json::value const & value = task.get();
+			json::value& value = task.get();
 
 			if (!value.is_null())
 			{
-				auto getvalue = json::value::array();
-
-				for (auto const & e : value.as_array())
-				{
-					auto pairvalue1 = json::value::array();
-					pairvalue1[0] = json::value(utility::string_t(L"STATE"));
-					pairvalue1[1] = e.at(utility::string_t(L"STATE"));
-
-					getvalue[0] = pairvalue1;
-
-					auto pairvalue2 = json::value::array();
-					pairvalue2[0] = json::value(utility::string_t(L"TRANSITION"));
-					pairvalue2[1] = e.at(utility::string_t(L"TRANSITION"));
-
-					getvalue[1] = pairvalue2;
-
-					auto pairvalue3 = json::value::array();
-					pairvalue3[0] = json::value(utility::string_t(L"ACTION"));
-					pairvalue3[1] = e.at(utility::string_t(L"ACTION"));
-
-					getvalue[2] = pairvalue3;
-
-					auto pairvalue4 = json::value::array();
-					pairvalue4[0] = json::value(utility::string_t(L"CODE"));
-					pairvalue4[1] = e.at(utility::string_t(L"CODE"));
-
-					getvalue[3] = pairvalue4;
-
-					std::wcout << L"Request to Server:" << std::endl;
-					std::wcout << getvalue.serialize() << std::endl << std::endl;
-					callMakeRequest(getvalue);
-				}
+				iotClient::callMakeRequest(value);
 			}
 		}
 		catch (http_exception const & e)
@@ -120,7 +145,8 @@ pplx::task<void> HTTPMethod()
 
 int wmain(int argc, char *args[])
 {
-	HTTPMethod().wait();
+	iotClient::HTTPMakeMethod().wait();
+	iotClient::callActionRequest();
 
 	_getch();
 	return 0;

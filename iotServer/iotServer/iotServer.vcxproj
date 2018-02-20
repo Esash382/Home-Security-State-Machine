@@ -147,6 +147,9 @@
   <ItemGroup>
     <ClCompile Include="iotServer.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="iotServer.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

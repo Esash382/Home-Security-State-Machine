@@ -14,7 +14,7 @@ using namespace web::http::experimental::listener;
 #include <string>
 using namespace std;
 
-map<utility::string_t, utility::string_t> dictionary;
+map<utility::string_t, json::value> dictionary;
 
 class iotServer
 {
@@ -24,4 +24,6 @@ public:
 	static void postHandler(http_request req);
 	static void putHandler(http_request req);
 
+private:
+	static bool state;
 };
