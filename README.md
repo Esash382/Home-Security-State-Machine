@@ -28,6 +28,7 @@ Workflow:
 - The client provides the code
 - The server checks if the code is valid and if valid, arms the device; if invalid, doesn't arm the device!
 
+
 - The server receives a request from a client to disarm the device
 - The server request code from the client
 - The client provides the code
