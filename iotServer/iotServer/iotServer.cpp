@@ -1,10 +1,15 @@
-// iotServer.cpp : Defines the entry point for the console application.
+// iotServer.cpp : Defines the IOT Server application
 //
 
 #include "iotServer.h"
 
 bool iotServer::state;
 
+/*
+ * This method analyzes which method handler to be called
+ * and calls the appropriate method handler and returns the
+ * response to the client
+ */
 void iotServer::requestHandler(http_request req,
 			function<void(json::value const &, json::value &)> method)
 {
@@ -29,14 +34,22 @@ void iotServer::requestHandler(http_request req,
 		}
 	}).wait();
 
+	// Reply back to the client
 	req.reply(status_codes::OK, resp);
 }
 
+/*
+ * This is the POST method handler
+ * This method analyzes requests for different states 
+ * This method is responsible for different state transitions
+ * and for validating the user code.
+ */
 void iotServer::postHandler(http_request req)
 {
 	std::wostringstream stream;
 	stream.str(std::wstring());
 	stream << L"\nReceived request from client" << std::endl;
+	stream << L"Handler type: " << req.method() << std::endl;
 	stream << L"Content type: " << req.headers().content_type() << std::endl;
 	stream << L"Content length: " << 
 		req.headers().content_length() << L"bytes" << std::endl;
@@ -56,28 +69,31 @@ void iotServer::postHandler(http_request req)
 					key = e;
 				else
 					value = e;
+
+				count++;
 			}
 
-			auto pos = dictionary.find(key.as_string());
+			auto pos = dictionary.find(key.serialize());
 			if (pos == dictionary.end()) // key not found
 			{
-				std::wcout << json::value::string(L"<nil>") << std::endl;
-				resp[key.serialize()] = json::value::string(L"<nil>");
+				// Any other code other than ON, OFF or USER_CODE will enter this path
+				std::wcout << L"Unrecognized input" << std::endl;
+				resp[key.serialize()] = json::value::string(L"Unrecognized input");
 			}
 			else // key found. Now process value of the key
 			{
 				// Switch on the device
-				if ((key.serialize() == L"OFF") || (key.serialize() == L"ON"))
+				if ((key.serialize() == L"\"OFF\"") || (key.serialize() == L"\"ON\""))
 				{
 					std::wcout << L"Request client to enter code" << std::endl;
 					resp[key.serialize()] = json::value::string(L"USER_CODE");
 
-					if (key.serialize() == L"OFF")
-						state = false; // disarm request
-					else
+					if (key.serialize() == L"\"OFF\"")
 						state = true; // arm request
+					else
+						state = false; // disarm request
 				}
-				else if (key.serialize() == L"USER_CODE")
+				else if (key.serialize() == L"\"USER_CODE\"")
 				{
 					// Check if code is present
 					if (value.serialize() == L"")
@@ -91,32 +107,40 @@ void iotServer::postHandler(http_request req)
 						if (value.serialize() == code.serialize()) // Valid code
 						{
 							// Send ok response
-							auto dict_val = dictionary[L"CODE_VALIDATED"];
+							auto dict_val = dictionary[L"\"CODE_VALIDATED\""];
 							std::wcout << L"CODE_VALIDATED : " << dict_val.serialize() << std::endl;
 							if (state == true)
+							{
 								std::wcout << L"Device armed" << std::endl;
+								resp[L"CODE_VALIDATED"] = 
+									json::value::string(L"Device armed : " + value.serialize());
+							}
 							else
+							{
 								std::wcout << L"Device disarmed" << std::endl;
-							resp[L"CODE_VALIDATED"] = code;
+								resp[L"CODE_VALIDATED"] = 
+									json::value::string(L"Device disarmed : " + value.serialize());
+							}
 						}
 						else // Invalid code
 						{
 							// Send not ok response
-							auto dict_val = dictionary[L"CODE_INVALIDATED"];
+							auto dict_val = dictionary[L"\"CODE_INVALIDATED\""];
 							std::wcout << L"CODE_INVALIDATED : " << dict_val.serialize() << std::endl;
-							if (key.serialize() == L"OFF")
+							if (state == true)
+							{
 								std::wcout << L"Device not armed" << std::endl;
+								resp[L"CODE_INVALIDATED"] = 
+									json::value::string(L"Device not armed : " + value.serialize());
+							}
 							else
+							{
 								std::wcout << L"Device not disarmed" << std::endl;
-							resp[L"CODE_INVALIDATED"] = code;
+								resp[L"CODE_INVALIDATED"] =
+									json::value::string(L"Device not disarmed : " + value.serialize());
+							}
 						}
 					}
-				}
-				else
-				{
-					// Any other code other than ON or OFF will enter this control path
-					std::wcout << L"Unrecognized input" << std::endl;
-					resp[key.serialize()] = json::value::string(L"<nil>");
 				}
 			}
 		}
@@ -124,11 +148,16 @@ void iotServer::postHandler(http_request req)
 		{
 			// Invalid input
 			std::wcout << L"Invalid input" << std::endl;
-			resp[L"INVALID"] = json::value::string(L"<nil>");
+			resp[L"INVALID"] = 
+				json::value::string(L"Invalid input. Array with STATE and CODE expected!");
 		}
 	});
 }
 
+/*
+ * This is the PUT method handler
+ * This method adds all possible states to a dictionary
+ */
 void iotServer::putHandler(http_request req)
 {
 	std::wostringstream stream;
@@ -158,11 +187,11 @@ void iotServer::putHandler(http_request req)
 					count++;
 				}
 
-				dictionary[key.as_string()] = value;
+				dictionary[key.serialize()] = value;
 
 				std::wcout << L"Added - " << key.serialize() << L" : " <<
 					value.serialize() << std::endl;
-				resp[key.as_string()] = value;
+				resp[key.serialize()] = value;
 			}
 		}
 	});
@@ -170,6 +199,7 @@ void iotServer::putHandler(http_request req)
 
 int main()
 {
+	// Listen to incoming connections at port :8080
 	http_listener listener(L"http://localhost:8080");
 
 	listener.support(methods::PUT, iotServer::putHandler);

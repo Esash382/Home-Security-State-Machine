@@ -1,1 +1,5 @@
-﻿
+﻿  iotClient.cpp
+c:\users\shreenath\documents\visual studio 2015\projects\iot\home-security-state-machine\iotclient\iotclient\iotclient.cpp(24): warning C4996: 'web::json::value::to_string': This API is deprecated and has been renamed to avoid confusion with as_string(), use ::web::json::value::serialize() instead.
+  c:\users\shreenath\documents\vcpkg\vcpkg-master\installed\x86-windows\include\cpprest\json.h(419): note: see declaration of 'web::json::value::to_string'
+  iotClient.vcxproj -> C:\Users\Shreenath\Documents\Visual Studio 2015\Projects\IOT\Home-Security-State-Machine\iotClient\Debug\iotClient.exe
+  iotClient.vcxproj -> C:\Users\Shreenath\Documents\Visual Studio 2015\Projects\IOT\Home-Security-State-Machine\iotClient\Debug\iotClient.pdb (Full PDB)

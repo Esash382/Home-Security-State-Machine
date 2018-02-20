@@ -6,6 +6,8 @@
 #include <iostream>
 #include <sstream>
 #include <conio.h>
+#include <chrono>
+#include <thread>
 #include <string>
 #include <vector>
 
@@ -14,6 +16,9 @@ using namespace ::pplx;
 using namespace web;
 using namespace web::http;
 using namespace web::http::client;
+
+using namespace std::this_thread;
+using namespace std::chrono;
 
 class iotClient
 {
