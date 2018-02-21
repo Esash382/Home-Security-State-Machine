@@ -21,3 +21,16 @@ It should be possible using the same definition file to set a process back from 
 state to DISARMED state and also define new states like HOME_AWAY, etc.
 
 The project used many MSDN examples as a start to implement this state machine.
+
+Workflow:
+To arm the device:
+- The server receives a request from a client to arm the device
+- The server request code from the client
+- The client provides the code
+- The server checks if the code is valid and if valid, arms the device; if invalid, doesn't arm the device!
+
+To disarm the device:
+- The server receives a request from a client to disarm the device
+- The server request code from the client
+- The client provides the code
+- The server checks if the code is valid and if valid, disarms the device; if invalid, doesn't disarm the device!

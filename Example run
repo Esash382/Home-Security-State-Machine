@@ -1,0 +1,109 @@
+The output from the server and client looks like the following
+
+Server: For a PUT request
+
+Server listening to incoming connections
+
+
+Received request from client
+Content type: application/json
+Content length: 208bytes
+
+
+Request from client
+[["ON","DISARMED","OFF",""],["USER_CODE","ENTER_CODE","VALIDATE","12345"],["CODE_VALIDATED","SEND_OK_RESPONSE","CODE_OK",""],
+["CODE_INVALIDATED","SEND_ERROR_RESPONSE","WRONG_CODE",""],["OFF","ARMED","ON",""]]
+
+Reply from server
+Added - "ON" : ["DISARMED","OFF",""]
+Added - "USER_CODE" : ["ENTER_CODE","VALIDATE","12345"]
+Added - "CODE_VALIDATED" : ["SEND_OK_RESPONSE","CODE_OK",""]
+Added - "CODE_INVALIDATED" : ["SEND_ERROR_RESPONSE","WRONG_CODE",""]
+Added - "OFF" : ["ARMED","ON",""]
+
+Client: For a PUT request
+
+PUT request from client
+Request to Server:
+[["ON","DISARMED","OFF",""],["USER_CODE","ENTER_CODE","VALIDATE","12345"],["CODE_VALIDATED","SEND_OK_RESPONSE","CODE_OK",""],
+["CODE_INVALIDATED","SEND_ERROR_RESPONSE","WRONG_CODE",""],["OFF","ARMED","ON",""]]
+
+Reply from Server:
+{"\"CODE_INVALIDATED\"":["SEND_ERROR_RESPONSE","WRONG_CODE",""],"\"CODE_VALIDATED\"":["SEND_OK_RESPONSE","CODE_OK",""],
+"\"OFF\"":["ARMED","ON",""],"\"ON\"":["DISARMED","OFF",""],"\"USER_CODE\"":["ENTER_CODE","VALIDATE","12345"]}
+
+Server: For POST Arm request
+
+Received request from client
+Handler type: POST
+Content type: application/json
+Content length: 10bytes
+
+
+Request from client
+["OFF",""]
+
+Reply from server
+Request client to enter code
+
+Received request from client
+Handler type: POST
+Content type: application/json
+Content length: 21bytes
+
+
+Request from client
+["USER_CODE","12345"]
+
+Reply from server
+CODE_VALIDATED : ["SEND_OK_RESPONSE","CODE_OK",""]
+Device armed
+
+Client: For a POST Arm request
+
+Arm request from client
+Request to Server: Switch on device
+Reply from Server:
+{"\"OFF\"":"USER_CODE"}
+
+Request to Server: Validate code
+Reply from Server:
+{"CODE_VALIDATED":"Device armed : \"12345\""}
+
+Server: For a POST Disarm request
+
+Received request from client
+Handler type: POST
+Content type: application/json
+Content length: 9bytes
+
+
+Request from client
+["ON",""]
+
+Reply from server
+Request client to enter code
+
+Received request from client
+Handler type: POST
+Content type: application/json
+Content length: 21bytes
+
+
+Request from client
+["USER_CODE","12345"]
+
+Reply from server
+CODE_VALIDATED : ["SEND_OK_RESPONSE","CODE_OK",""]
+Device disarmed
+
+Client: For a POST Disarm request
+
+Disarm request from client
+Request to Server: Switch off device
+Reply from Server:
+{"\"ON\"":"USER_CODE"}
+
+Request to Server: Validate code
+Reply from Server:
+{"CODE_VALIDATED":"Device disarmed : \"12345\""}
