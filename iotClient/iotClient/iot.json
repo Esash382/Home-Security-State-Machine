@@ -1,0 +1,32 @@
+[	
+	{
+      "STATE":"ON",
+      "TRANSITION":"DISARMED",
+      "ACTION":"OFF",
+	  "CODE":""
+    },
+   {
+      "STATE":"USER_CODE",
+      "TRANSITION":"ENTER_CODE",
+      "ACTION":"VALIDATE",
+	  "CODE":"12345"
+    },
+	{
+      "STATE":"CODE_VALIDATED",
+      "TRANSITION":"SEND_OK_RESPONSE",
+      "ACTION":"CODE_OK",
+	  "CODE":""
+    },
+	{
+      "STATE":"CODE_INVALIDATED",
+      "TRANSITION":"SEND_ERROR_RESPONSE",
+      "ACTION":"WRONG_CODE",
+	  "CODE":""
+    },
+	{
+      "STATE":"OFF",
+      "TRANSITION":"ARMED",
+      "ACTION":"ON",
+	  "CODE":""
+    }
+]
