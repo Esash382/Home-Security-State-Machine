@@ -1,7 +1,8 @@
 # Home-Security-State-Machine
 A program which implements a simple, configurable Home Security state machine.
 
-This project uses C++ Rest SDK to implement a simple home security state machine.
+This project uses C++ Rest SDK to implement a simple home security state machine. To run this project, a HTTP server is required. This project was compiled and run on Windows using WAMP Apache HTTP server and Visual Studio 15.0.
+
 The specifications are that the application should read configuration file on startup (JSON encoded). The file should contain definitions of states, transition events, and actions which have to be executed on transition. Simple HTTP REST interface which should be used to inject events.
 
 Supported events:
